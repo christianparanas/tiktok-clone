@@ -1,10 +1,21 @@
 import { useEffect, useState } from "react";
 import db from "lib/firebase";
 import { removeWhiteSpace } from "lib/validate";
+import toast from "react-hot-toast";
 
+const toastOptions = {
+  position: "top-right",
+  style: {
+    fontFamily: "proxima-regular",
+    borderRadius: 10,
+    background: "#333",
+    color: "#fff",
+  },
+};
 
 export default function SignUp({ user }) {
   const [isTaken, setTaken] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [username, setUsername] = useState("");
 
   useEffect(() => {
@@ -32,12 +43,48 @@ export default function SignUp({ user }) {
     }
   }, [username]);
 
+  async function signUp(e) {
+    e.preventDefault();
+
+    if (isTaken) toast.error("Username is already taken.", toastOptions);
+    if (username.length < 3)
+      toast.error("Username is under 3 character limit.", toastOptions);
+    if (username.length >= 20)
+      toast.error("Username is over 20 character limit.", toastOptions);
+
+    const { uid, displayName, photoURL } = user;
+    const u = `@${removeWhiteSpace(username)}`;
+
+    try {
+      setLoading(true);
+
+      await db.doc(`users/${uid}`).set({
+        uid,
+        username: u,
+        displayName,
+        photoURL,
+      });
+
+      await db.doc(`usernames/${u}`).set({
+        uid,
+      });
+
+      window.location.reload()
+
+    } catch (error) {
+      toast.error("Something went wrong.", toastOptions);
+    }
+    finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="signup-container">
       <header className="signup-header">
         <div className="signup-header-title">Sign up</div>
       </header>
-      <form className="signup-form">
+      <form onSubmit={signUp} className="signup-form">
         <div className="signup-form-inner">
           <div className="signup-form-title">Create username</div>
           <div className={`signup-input ${isTaken ? "signup-error" : ""}`}>
@@ -55,7 +102,11 @@ export default function SignUp({ user }) {
               : "You can always change this later."}
           </div>
         </div>
-        <button type="submit" className="signup-submit" disabled={isTaken}>
+        <button
+          type="submit"
+          className="signup-submit"
+          disabled={isTaken || isLoading}
+        >
           Sign up
         </button>
       </form>

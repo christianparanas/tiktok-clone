@@ -11,7 +11,7 @@ export default function LogIn({ setUser, setNewUser }) {
   }
 
   const checkUser = async (uid) => {
-    const usernameRef = db.collection("users").where("uid", "==", uid);
+    const usernameRef = db.collection("usernames").where("uid", "==", uid);
     const querySnapshopt = await usernameRef.get();
     setNewUser(querySnapshopt.empty)
   };
