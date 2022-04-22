@@ -3,17 +3,18 @@ import db, { auth, googleAuthProvider } from "lib/firebase";
 export default function LogIn({ setUser, setNewUser }) {
   async function signIn() {
     const data = await auth.signInWithPopup(googleAuthProvider);
+
     if (data) {
-      await checkUsername(data.user.uid);
-      setUser(data.user);
+      checkUser(data.user.uid);
+      setUser(data.user)
     }
   }
 
-  async function checkUsername(uid) {
-    const usernameRef = db.collection("usernames").where("uid", "==", uid);
-    const querySnapshot = await usernameRef.get();
-    setNewUser(querySnapshot.empty);
-  }
+  const checkUser = async (uid) => {
+    const usernameRef = db.collection("users").where("uid", "==", uid);
+    const querySnapshopt = await usernameRef.get();
+    setNewUser(querySnapshopt.empty)
+  };
 
   return (
     <div className="login-container">
@@ -26,13 +27,19 @@ export default function LogIn({ setUser, setNewUser }) {
 
           <div className="login-options">
             <LoginOption src="/assets/email.png" text="Use phone or email" />
-            <LoginOption src="/assets/facebook.png" text="Continue with Facebook" />
+            <LoginOption
+              src="/assets/facebook.png"
+              text="Continue with Facebook"
+            />
             <LoginOption
               src="/assets/google.png"
               text="Continue with Google"
               onClick={signIn}
             />
-            <LoginOption src="/assets/twitter.png" text="Continue with Twitter" />
+            <LoginOption
+              src="/assets/twitter.png"
+              text="Continue with Twitter"
+            />
           </div>
         </div>
       </div>
