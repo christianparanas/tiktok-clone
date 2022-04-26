@@ -12,8 +12,7 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     if(!loading && user == null) router.push('/auth')
-    
-    router.push('/')
+
   }, [loading]);
 
   if(loading) return <Loader />

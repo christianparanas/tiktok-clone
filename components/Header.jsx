@@ -16,14 +16,14 @@ export default function Header() {
     <div className="h-container">
       <div className="h-content">
         <div className="h-wrapper">
-          <Link href="/hhsd" passHref className="h-link">
+          <Link href="/hh" passHref className="h-link">
             <img src="/assets/tiktok-logo.svg" alt="Logo" className="h-icon" />
           </Link>
         </div>
         <SearchBar />
 
         <div className="h-menu-right">
-          <Link href="/sds" passHref className="h-menu-upload">
+          <Link href="/upload" passHref className="h-menu-upload">
             <UploadIcon />
           </Link>
 
