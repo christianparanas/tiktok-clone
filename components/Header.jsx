@@ -8,9 +8,8 @@ import InboxIcon from "./icons/InboxIcon";
 import useAuthUser from "context/userContext";
 
 export default function Header() {
-  const [user] = useAuthUser();
+  const [userData] = useAuthUser();
 
-  console.log(user);
 
   return (
     <div className="h-container">
@@ -31,7 +30,7 @@ export default function Header() {
           <InboxIcon />
 
           <div className="h-avatar-container">
-            <img src={user.photoURL} alt={user.username} className="h-avatar" />
+            <img src={userData.photoURL} alt={userData.username} className="h-avatar" />
           </div>
         </div>
       </div>

@@ -2,8 +2,16 @@ import React from "react";
 import DraftEditor from "components/DraftEditor";
 import useDragDrop from "hooks/useDragDrop";
 import toast from "react-hot-toast";
+import useAuthUser from "context/userContext";
+import useFirebaseUpload from "hooks/useFirebaseUpload";
+
+import UploadCircleIcon from "components/icons/UploadCircleIcon";
 
 export default function Upload() {
+  const [userData] = useAuthUser();
+  const { handleUpload, cancelUpload, file, videoURL, isUploading, uploadProgress } =
+    useFirebaseUpload(userData);
+
   return (
     <div className="u-container">
       <div className="u-wrapper">
@@ -11,16 +19,21 @@ export default function Upload() {
           <div className="u-title">
             Upload video
             <div className="u-subtitle">
-              This video will be published to username
+              This video will be published to {userData?.username}
             </div>
           </div>
 
           <div className="u-content">
-            {/* <UploadPreview />
-        <UploadProgress /> */}
+            {videoURL && <UploadPreview file={file} videoURL={videoURL} />}
+            {isUploading && (
+              <UploadProgress cancelUpload={cancelUpload} file={file} uploadProgress={uploadProgress} />
+            )}
 
-            <UploadSelectFile />
-
+            <UploadSelectFile
+              isUploading={isUploading}
+              videoURL={videoURL}
+              handleUpload={handleUpload}
+            />
             <UploadForm />
           </div>
         </div>
@@ -29,47 +42,95 @@ export default function Upload() {
   );
 }
 
-function UploadPreview() {
-  return "preview";
+function UploadPreview({ file, videoURL }) {
+  return (
+    <div className="u-preview-container">
+      <div className="u-preview-wrapper">
+        <button className="u-preview-delete-button">
+          <img
+            src="/assets/delete.svg"
+            alt=""
+            className="u-preview-delete-icon"
+          />
+        </button>
+        <video
+          src={videoURL}
+          autoPlay
+          loop
+          muted
+          className="u-preview-video"
+        ></video>
+      </div>
+    </div>
+  );
 }
 
-function UploadProgress() {
-  return "progress";
+function UploadProgress({ file, uploadProgress, cancelUpload }) {
+  return (
+    <div className="u-progress-container">
+      <div className="u-progress-circle-container">
+        <div className="u-progress-circle">
+          <UploadCircleIcon progress={uploadProgress} />
+          <img
+          onClick={cancelUpload}
+            src="/assets/close.svg"
+            alt=""
+            className="u-progress-close-icon"
+            style={{ marginTop: -27 }}
+          />
+          <div className="u-progress-percentage">{uploadProgress}%</div>
+          <div className="u-progress-file-name-container">
+            <span className="u-progress-file">{file.name}</span>
+          </div>
+        </div>
+
+        <div className="u-progress-file-size">
+          {Math.round(file.size / 1000000)} MB
+        </div>
+      </div>
+    </div>
+  );
 }
 
-function UploadSelectFile() {
-  const { dropRef, inputref, selectFile, onSelectFile } = useDragDrop(getVideoDuration);
+function UploadSelectFile({ handleUpload, isUploading, videoURL }) {
+  const { dropRef, inputref, selectFile, onSelectFile } =
+    useDragDrop(getVideoDuration);
 
   function getVideoDuration(file) {
-    const reader = new FileReader()
+    const reader = new FileReader();
 
     reader.onloadend = () => {
-      const media = new Audio(reader.result)
+      const media = new Audio(reader.result);
 
       media.onloadedmetadata = () => {
-        const duration = Math.round(media.duration)
+        const duration = Math.round(media.duration);
 
-        if(duration > 180) {
+        if (duration > 180) {
           toast("Video is over the 3min limit", {
             style: {
               fontFamily: "proxima",
               borderRadius: 10,
               background: "#333",
-              color: "#fff"
-            }
-          })
+              color: "#fff",
+            },
+          });
+        } else {
+          handleUpload(file);
         }
-        else {
-          console.log("hadled");
-        }
-      }
-    }
+      };
+    };
 
-    reader.readAsDataURL(file)
+    reader.readAsDataURL(file);
   }
 
   return (
-    <div onClick={selectFile} ref={dropRef} className="u-select-file-container">
+    <div
+      onClick={selectFile}
+      ref={dropRef}
+      className={`u-select-file-container ${
+        isUploading || videoURL ? "empty" : ""
+      }`}
+    >
       <div className="u-select-file-wrapper">
         <img
           src="/assets/cloud-icon.svg"

@@ -1,24 +1,42 @@
 import Loader from "components/Loader";
 import db, { auth } from "lib/firebase";
-import { useRouter } from 'next/router'
-import { createContext, useEffect, useContext } from "react";
+import { useRouter } from "next/router";
+import { createContext, useEffect, useContext, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 
 const UserContext = createContext();
 
 export function UserProvider({ children }) {
-  const router = useRouter()
-  const [user, loading, error] = useAuthState(auth);
+  const router = useRouter();
+
+  const [user, error] = useAuthState(auth);
+  const [userData, setUserData] = useState(null);
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
-    if(!loading && user == null) router.push('/auth')
+    const ref = db.doc(`users/${user?.uid}`);
 
-  }, [loading]);
+    ref
+      .get()
+      .then((doc) => {
+        if (doc.exists) {
+          setUserData({ id: doc.id, ref: doc.ref, ...doc.data() });
+        }
+      })
+      .catch((error) => console.error("Error Fetching Current User Data."))
+      .finally(() => setLoading(false));
+  }, [user]);
 
-  if(loading) return <Loader />
+  // check if authenticated
+  useEffect(() => {
+    if (!isLoading && user == null) router.push("/auth");
+
+  }, [isLoading]);
+
+  if (isLoading) return <Loader />;
 
   return (
-    <UserContext.Provider value={[user, loading, error]}>
+    <UserContext.Provider value={[userData, isLoading, error]}>
       {children}
     </UserContext.Provider>
   );
