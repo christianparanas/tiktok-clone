@@ -1,6 +1,7 @@
 import React from "react";
 import DraftEditor from "components/DraftEditor";
 import useDragDrop from "hooks/useDragDrop";
+import toast from "react-hot-toast";
 
 export default function Upload() {
   return (
@@ -37,12 +38,44 @@ function UploadProgress() {
 }
 
 function UploadSelectFile() {
-  const { dropRef } = useDragDrop()
+  const { dropRef, inputref, selectFile, onSelectFile } = useDragDrop(getVideoDuration);
+
+  function getVideoDuration(file) {
+    const reader = new FileReader()
+
+    reader.onloadend = () => {
+      const media = new Audio(reader.result)
+
+      media.onloadedmetadata = () => {
+        const duration = Math.round(media.duration)
+
+        if(duration > 180) {
+          toast("Video is over the 3min limit", {
+            style: {
+              fontFamily: "proxima",
+              borderRadius: 10,
+              background: "#333",
+              color: "#fff"
+            }
+          })
+        }
+        else {
+          console.log("hadled");
+        }
+      }
+    }
+
+    reader.readAsDataURL(file)
+  }
 
   return (
-    <div ref={dropRef} className="u-select-file-container">
+    <div onClick={selectFile} ref={dropRef} className="u-select-file-container">
       <div className="u-select-file-wrapper">
-        <img src="/assets/cloud-icon.svg" alt="" className="u-select-file-icon" />
+        <img
+          src="/assets/cloud-icon.svg"
+          alt=""
+          className="u-select-file-icon"
+        />
         <div className="u-select-file-title">Select video to upload</div>
         <div className="u-select-file-subtitle">Or drag and drop a file</div>
         <br />
@@ -57,6 +90,8 @@ function UploadSelectFile() {
       </div>
 
       <input
+        ref={inputref}
+        onChange={onSelectFile}
         type="file"
         name=""
         id="file-input"
