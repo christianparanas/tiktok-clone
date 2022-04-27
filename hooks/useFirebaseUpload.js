@@ -18,15 +18,13 @@ export default function useFirebaseUpload(user) {
     const uploadTask = storage.ref(`uploads/${user.uid}/${uploadId}`).put(file);
     setUploadTask(uploadTask);
 
-    uploadTask.on(
-      "state_change",
-      (snapshot) => {
+    uploadTask.on("state_change", (snapshot) => {
         const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
         setUploadProgress(progress);
       },
       (error) => {
         console.error("Error uploading video ", error);
-        setUploading(false)
+        setUploading(false);
       },
       () => {
         storage
@@ -34,18 +32,33 @@ export default function useFirebaseUpload(user) {
           .getDownloadURL()
           .then((url) => {
             setVideoURL(url);
-            setUploading(false)
+            setUploading(false);
           });
       }
     );
   }
 
   async function cancelUpload() {
-    if(uploadTask) {
-      setUploading(false)
-      await uploadTask.cancel()
+    if (uploadTask) {
+      setUploading(false);
+      await uploadTask.cancel();
     }
   }
 
-  return { handleUpload, cancelUpload, file, videoURL, isUploading, uploadProgress };
+  function discardUpload() {
+    setUploading(false);
+    setUploadProgress(0);
+    setVideoURL("");
+    setFile(null);
+  }
+
+  return {
+    handleUpload,
+    cancelUpload,
+    file,
+    videoURL,
+    isUploading,
+    uploadProgress,
+    discardUpload,
+  };
 }

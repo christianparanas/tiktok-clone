@@ -6,11 +6,20 @@ import useAuthUser from "context/userContext";
 import useFirebaseUpload from "hooks/useFirebaseUpload";
 
 import UploadCircleIcon from "components/icons/UploadCircleIcon";
+import useDiscardModal from "context/DiscardModalContext";
+import DiscardModal from "components/DiscardModal";
 
 export default function Upload() {
   const [userData] = useAuthUser();
-  const { handleUpload, cancelUpload, file, videoURL, isUploading, uploadProgress } =
-    useFirebaseUpload(userData);
+  const {
+    handleUpload,
+    cancelUpload,
+    file,
+    videoURL,
+    isUploading,
+    uploadProgress,
+    discardUpload,
+  } = useFirebaseUpload(userData);
 
   return (
     <div className="u-container">
@@ -26,7 +35,11 @@ export default function Upload() {
           <div className="u-content">
             {videoURL && <UploadPreview file={file} videoURL={videoURL} />}
             {isUploading && (
-              <UploadProgress cancelUpload={cancelUpload} file={file} uploadProgress={uploadProgress} />
+              <UploadProgress
+                cancelUpload={cancelUpload}
+                file={file}
+                uploadProgress={uploadProgress}
+              />
             )}
 
             <UploadSelectFile
@@ -34,7 +47,7 @@ export default function Upload() {
               videoURL={videoURL}
               handleUpload={handleUpload}
             />
-            <UploadForm />
+            <UploadForm discardUpload={discardUpload} />
           </div>
         </div>
       </div>
@@ -43,10 +56,13 @@ export default function Upload() {
 }
 
 function UploadPreview({ file, videoURL }) {
+  const { isDiscardOpen, openDiscardModal, closeDiscardModal } =
+    useDiscardModal();
+
   return (
     <div className="u-preview-container">
       <div className="u-preview-wrapper">
-        <button className="u-preview-delete-button">
+        <button onClick={openDiscardModal} className="u-preview-delete-button">
           <img
             src="/assets/delete.svg"
             alt=""
@@ -72,7 +88,7 @@ function UploadProgress({ file, uploadProgress, cancelUpload }) {
         <div className="u-progress-circle">
           <UploadCircleIcon progress={uploadProgress} />
           <img
-          onClick={cancelUpload}
+            onClick={cancelUpload}
             src="/assets/close.svg"
             alt=""
             className="u-progress-close-icon"
@@ -163,28 +179,38 @@ function UploadSelectFile({ handleUpload, isUploading, videoURL }) {
   );
 }
 
-function UploadForm() {
-  return (
-    <div className="u-form-container">
-      <div className="u-form-wrapper">
-        <div className="u-form-inner">
-          <div className="u-form-header">
-            <span className="u-form-title">Caption</span>
-            <span className="u-form-length-container">
-              <span className="u-form-length">0 / 150</span>
-            </span>
-          </div>
+function UploadForm({ discardUpload }) {
+  const { closeDiscardModal } = useDiscardModal()
 
-          <div className="u-form-input">
-            <DraftEditor />
+  const onConfirm = () => {
+    closeDiscardModal()
+    discardUpload()
+  }
+
+  return (
+    <>
+      <DiscardModal onConfirm={onConfirm} />
+      <div className="u-form-container">
+        <div className="u-form-wrapper">
+          <div className="u-form-inner">
+            <div className="u-form-header">
+              <span className="u-form-title">Caption</span>
+              <span className="u-form-length-container">
+                <span className="u-form-length">0 / 150</span>
+              </span>
+            </div>
+
+            <div className="u-form-input">
+              <DraftEditor />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="u-form-action">
-        <button className="u-form-discard">Discard</button>
-        <button className="u-form-submit">Post</button>
+        <div className="u-form-action">
+          <button className="u-form-discard">Discard</button>
+          <button className="u-form-submit">Post</button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
