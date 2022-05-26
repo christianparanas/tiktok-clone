@@ -79,10 +79,8 @@ function Entry(props) {
         <div className="entry-container-left">
           <img src={mention.photoURL} className="entry-avatar" alt="" />
         </div>
-
         <div className="entry-container-right">
           <div className="entry-text">{mention.name}</div>
-
           <div className="entry-title">{mention.displayName}</div>
         </div>
       </div>
